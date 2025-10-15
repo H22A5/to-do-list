@@ -13,7 +13,7 @@ class UserFacadeImpl implements UserFacade {
     }
 
     @Override
-    public Mono<UserDTO> getUserById(String id) {
+    public Mono<UserView> getUserById(String id) {
         return service.getUserById(id);
     }
 }

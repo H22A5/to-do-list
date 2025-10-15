@@ -12,7 +12,11 @@ class UserService {
         this.repository = repository;
     }
 
-    Mono<UserDTO> getUserById(String id) {
-        return repository.findById(id).map(UserDTO::fromUser);
+    Mono<UserView> getUserById(String id) {
+        return repository.findById(id).map(UserView::fromUser);
+    }
+
+    Mono<UserResponseDTO> saveUser(String username) {
+        repository.findByUsername(username);
     }
 }

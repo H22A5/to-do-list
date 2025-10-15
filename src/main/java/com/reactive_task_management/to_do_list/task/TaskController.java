@@ -1,14 +1,10 @@
 package com.reactive_task_management.to_do_list.task;
 
 import jakarta.validation.Valid;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-
-import java.util.UUID;
 
 import static org.springframework.http.HttpStatus.*;
 import static org.springframework.http.MediaType.TEXT_EVENT_STREAM_VALUE;
@@ -24,12 +20,12 @@ class TaskController {
     }
 
     @GetMapping(produces = TEXT_EVENT_STREAM_VALUE)
-    Flux<TaskResponseDTO> getAllTasks() {
+    Flux<TaskResponse> getAllTasks() {
         return taskService.getAllTasks();
     }
 
     @GetMapping("/{id}")
-    Mono<ResponseEntity<TaskResponseDTO>> getTaskById(@PathVariable("id") String id) {
+    Mono<ResponseEntity<TaskResponse>> getTaskById(@PathVariable("id") String id) {
         return taskService.getTaskById(id)
                 .map(task -> ResponseEntity.status(OK).body(task))
                 .defaultIfEmpty(ResponseEntity.notFound().build());
@@ -37,7 +33,7 @@ class TaskController {
 
     @PostMapping
     @ResponseStatus(CREATED)
-    Mono<TaskResponseDTO> saveTask(@Valid @RequestBody TaskRequestDTO dto) {
+    Mono<TaskResponse> saveTask(@Valid @RequestBody TaskRequest dto) {
         return taskService.saveTask(dto);
     }
 
@@ -45,7 +41,7 @@ class TaskController {
     @ResponseStatus(NO_CONTENT)
     Mono<Void> updateTask(
             @PathVariable("id") String id,
-            @Valid @RequestBody TaskRequestDTO dto) {
+            @Valid @RequestBody TaskRequest dto) {
         return taskService.updateTask(id, dto);
     }
 

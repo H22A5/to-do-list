@@ -4,5 +4,5 @@ import reactor.core.publisher.Mono;
 
 public interface UserFacade {
 
-    Mono<UserDTO> getUserById(String id);
+    Mono<UserView> getUserById(String id);
 }

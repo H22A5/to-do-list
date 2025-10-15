@@ -12,7 +12,7 @@ class TaskServiceFacadeImpl implements TaskServiceFacade {
     }
 
     @Override
-    public TaskResponseDTO getTaskById(String id) {
+    public TaskResponse getTaskById(String id) {
         return null;
     }
 }

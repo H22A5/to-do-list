@@ -16,7 +16,7 @@ class TaskService {
         this.userFacade = userFacade;
     }
 
-    Mono<TaskResponseDTO> saveTask(TaskRequestDTO dto) {
+    Mono<TaskResponse> saveTask(TaskRequest dto) {
 
         final var taskToBeSaved = Task.builder()
                 .title(dto.title())
@@ -24,10 +24,10 @@ class TaskService {
                 .status(dto.status())
                 .build();
 
-        return repository.save(taskToBeSaved).map(TaskResponseDTO::fromTask);
+        return repository.save(taskToBeSaved).map(TaskResponse::fromTask);
     }
 
-    Mono<Void> updateTask(String id, TaskRequestDTO dto) {
+    Mono<Void> updateTask(String id, TaskRequest dto) {
         return repository.findById(id).flatMap(existing -> {
             existing.updateTaskDetails(dto.title(), dto.description(), dto.status());
             return repository.save(existing);
@@ -38,11 +38,11 @@ class TaskService {
         return repository.deleteById(id);
     }
 
-    Mono<TaskResponseDTO> getTaskById(String id) {
-        return repository.findById(id).map(TaskResponseDTO::fromTask);
+    Mono<TaskResponse> getTaskById(String id) {
+        return repository.findById(id).map(TaskResponse::fromTask);
     }
 
-    Flux<TaskResponseDTO> getAllTasks() {
-        return repository.findAll().map(TaskResponseDTO::fromTask);
+    Flux<TaskResponse> getAllTasks() {
+        return repository.findAll().map(TaskResponse::fromTask);
     }
 }

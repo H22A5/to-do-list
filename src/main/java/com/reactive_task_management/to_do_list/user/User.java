@@ -8,6 +8,7 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.util.Objects;
+import java.util.Set;
 
 import static lombok.AccessLevel.PRIVATE;
 
@@ -22,6 +23,8 @@ class User {
     private String id;
 
     private String username;
+
+    private Set<String> tasks;
 
     @Override
     public boolean equals(Object o) {
