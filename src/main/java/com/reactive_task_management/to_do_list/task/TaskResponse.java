@@ -6,9 +6,10 @@ record TaskResponse(String id,
                     String title,
                     String description,
                     TaskStatus status,
-                    LocalDateTime creationDate) {
+                    LocalDateTime creationDate,
+                    String userId) {
 
     static TaskResponse fromTask(Task task) {
-        return new TaskResponse(task.getId(), task.getTitle(), task.getDescription(), task.getStatus(), task.getCreationDate());
+        return new TaskResponse(task.getId(), task.getTitle(), task.getDescription(), task.getStatus(), task.getCreationDate(), task.getUserId());
     }
 }

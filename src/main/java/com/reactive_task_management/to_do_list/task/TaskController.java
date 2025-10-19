@@ -33,8 +33,8 @@ class TaskController {
 
     @PostMapping
     @ResponseStatus(CREATED)
-    Mono<TaskResponse> saveTask(@Valid @RequestBody TaskRequest dto) {
-        return taskService.saveTask(dto);
+    Mono<TaskResponse> saveTask(@Valid @RequestBody Mono<TaskRequest> request) {
+        return request.flatMap(taskService::saveTask);
     }
 
     @PutMapping("/{id}")
@@ -46,7 +46,13 @@ class TaskController {
     }
 
     @DeleteMapping("/{id}")
-    Mono<ResponseEntity<Void>> deleteTaskById(@PathVariable("id") String id) {
-        return taskService.deleteTaskById(id).map(t -> ResponseEntity.noContent().build());
+    @ResponseStatus(NO_CONTENT)
+    Mono<Void> deleteTaskById(@PathVariable("id") String id) {
+        return taskService.deleteTaskById(id);
+    }
+
+    @GetMapping("/user/{userId}")
+    Flux<TaskResponse> getAllUserTasks(@PathVariable("userId") String userId) {
+        return taskService.getAllUserTasks(userId);
     }
 }

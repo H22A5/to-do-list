@@ -4,5 +4,5 @@ import reactor.core.publisher.Mono;
 
 public interface UserFacade {
 
-    Mono<UserView> getUserById(String id);
+    Mono<?> validateUserExists(String id);
 }

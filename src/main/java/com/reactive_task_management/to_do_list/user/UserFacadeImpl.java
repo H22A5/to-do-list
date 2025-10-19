@@ -6,14 +6,14 @@ import reactor.core.publisher.Mono;
 @Component
 class UserFacadeImpl implements UserFacade {
 
-    private final UserService service;
+    private final UserService userService;
 
-    UserFacadeImpl(UserService service) {
-        this.service = service;
+    UserFacadeImpl(UserService userService) {
+        this.userService = userService;
     }
 
     @Override
-    public Mono<UserView> getUserById(String id) {
-        return service.getUserById(id);
+    public Mono<Void> validateUserExists(String id) {
+        return userService.validateUserExists(id);
     }
 }
