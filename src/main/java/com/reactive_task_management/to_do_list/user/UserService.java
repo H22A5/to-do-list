@@ -1,17 +1,15 @@
 package com.reactive_task_management.to_do_list.user;
 
 import com.reactive_task_management.to_do_list.exception.UserNotFoundException;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
 @Service
+@RequiredArgsConstructor
 class UserService {
 
     private final UserRepository repository;
-
-    UserService(UserRepository repository) {
-        this.repository = repository;
-    }
 
     Mono<Void> validateUserExists(String id) {
         return repository.existsById(id)

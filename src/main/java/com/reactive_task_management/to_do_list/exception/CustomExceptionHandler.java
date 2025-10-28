@@ -4,7 +4,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import reactor.netty.http.server.HttpServerRequest;
+import org.springframework.web.server.ServerWebExchange;
 
 import java.time.Instant;
 
@@ -16,23 +16,23 @@ public class CustomExceptionHandler {
 
     @ExceptionHandler({TaskNotFoundException.class, UserNotFoundException.class})
     @ResponseStatus(NOT_FOUND)
-    public ErrorResponse handleNotFoundExceptions(RuntimeException ex, HttpServerRequest request) {
+    public ErrorResponse handleNotFoundExceptions(RuntimeException ex, ServerWebExchange exchange) {
         return new ErrorResponse(
                 Instant.now().toString(),
                 NOT_FOUND.value(),
                 ex.getMessage(),
-                request.path()
+                exchange.getRequest().getPath().value()
         );
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     @ResponseStatus(BAD_REQUEST)
-    public ErrorResponse handleMethodArgumentNotValidException(RuntimeException ex, HttpServerRequest request) {
+    public ErrorResponse handleMethodArgumentNotValidException(RuntimeException ex, ServerWebExchange exchange) {
         return new ErrorResponse(
                 Instant.now().toString(),
                 BAD_REQUEST.value(),
                 ex.getMessage(),
-                request.path()
+                exchange.getRequest().getPath().value()
         );
     }
 }

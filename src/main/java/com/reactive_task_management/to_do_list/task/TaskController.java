@@ -1,6 +1,7 @@
 package com.reactive_task_management.to_do_list.task;
 
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
@@ -11,13 +12,10 @@ import static org.springframework.http.MediaType.TEXT_EVENT_STREAM_VALUE;
 
 @RestController
 @RequestMapping("/tasks")
+@RequiredArgsConstructor
 class TaskController {
 
     private final TaskService taskService;
-
-    TaskController(TaskService taskService) {
-        this.taskService = taskService;
-    }
 
     @GetMapping(produces = TEXT_EVENT_STREAM_VALUE)
     Flux<TaskResponse> getAllTasks() {
@@ -26,9 +24,7 @@ class TaskController {
 
     @GetMapping("/{id}")
     Mono<ResponseEntity<TaskResponse>> getTaskById(@PathVariable("id") String id) {
-        return taskService.getTaskById(id)
-                .map(task -> ResponseEntity.status(OK).body(task))
-                .defaultIfEmpty(ResponseEntity.notFound().build());
+        return taskService.getTaskById(id).map(task -> ResponseEntity.status(OK).body(task));
     }
 
     @PostMapping

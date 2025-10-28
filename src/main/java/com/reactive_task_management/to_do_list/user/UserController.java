@@ -1,6 +1,7 @@
 package com.reactive_task_management.to_do_list.user;
 
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
@@ -8,13 +9,10 @@ import static org.springframework.http.HttpStatus.CREATED;
 
 @RestController
 @RequestMapping("/users")
+@RequiredArgsConstructor
 class UserController {
 
     private final UserService userService;
-
-    UserController(UserService userService) {
-        this.userService = userService;
-    }
 
     @PostMapping
     @ResponseStatus(CREATED)
