@@ -3,6 +3,8 @@ package com.reactive_task_management.to_do_list.task;
 import com.reactive_task_management.to_do_list.exception.TaskNotFoundException;
 import com.reactive_task_management.to_do_list.user.UserFacade;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.mongodb.core.ReactiveMongoTemplate;
+import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -13,6 +15,7 @@ class TaskService {
 
     private final TaskRepository repository;
     private final UserFacade userFacade;
+    private final ReactiveMongoTemplate template;
 
     Mono<TaskResponse> saveTask(TaskRequest request) {
 
@@ -45,8 +48,13 @@ class TaskService {
                 .map(TaskResponse::fromTask);
     }
 
-    Flux<TaskResponse> getAllTasks() {
-        return repository.findAll().map(TaskResponse::fromTask);
+    Flux<TaskResponse> getAllTasks(int page, int size) {
+        // Needed to use template because repo.findAll() method doesn't support pagination
+        final var query = new Query()
+                .skip((long) page * size)
+                .limit(size);
+
+        return template.find(query, Task.class).map(TaskResponse::fromTask);
     }
 
     Flux<TaskResponse> getAllUserTasks(String userId) {

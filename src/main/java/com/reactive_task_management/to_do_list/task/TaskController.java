@@ -18,8 +18,11 @@ class TaskController {
     private final TaskService taskService;
 
     @GetMapping(produces = TEXT_EVENT_STREAM_VALUE)
-    Flux<TaskResponse> getAllTasks() {
-        return taskService.getAllTasks();
+    Flux<TaskResponse> getAllTasks(
+            @RequestParam(value = "page", defaultValue = "0") int page,
+            @RequestParam(value = "size", defaultValue = "10") int size
+    ) {
+        return taskService.getAllTasks(page, size);
     }
 
     @GetMapping("/{id}")
