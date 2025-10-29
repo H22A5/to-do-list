@@ -21,7 +21,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.when;
 
 /**
- * Needed to import
+ * Needed to {@code @Import}
  *      <p>{@link TestConfig} with MongoMappingContext bean to prevent application from creating persistence layer</p>
  *      <p>{@link CustomExceptionHandler} to have full control of Http statuses returned from TaskController</p>
  */
@@ -29,7 +29,7 @@ import static org.mockito.Mockito.when;
 @Import({TestConfig.class, CustomExceptionHandler.class})
 class TaskControllerTest {
 
-    /** WebTestClient because it is "not-blocking" way to access endpoints*/
+    /** {@link WebTestClient} because it is "not-blocking" way to access endpoints*/
     @Autowired
     WebTestClient webTestClient;
 
@@ -151,25 +151,122 @@ class TaskControllerTest {
                 .expectBodyList(TaskResponse.class)
                 .hasSize(2)
                 .contains(dummyResponse1, dummyResponse2);
-
     }
 
     @Test
     void getAllTasks_noSizeAndPage_listOfTasksAndOkStatus() {
+        // given
+        final var dummyResponse1 = new TaskResponse("dummyId", "dummyTitle", "dummyDescription", CREATED, LocalDateTime.now(), "dummyUserId");
+        final var dummyResponse2 = new TaskResponse("dummyId2", "dummyTitle2", "dummyDescription2", CREATED, LocalDateTime.now(), "dummyUserId2");
 
+        when(taskService.getAllTasks(0, 10)).thenReturn(Flux.just(dummyResponse1, dummyResponse2));
+
+        // when & then
+        webTestClient.get()
+                .uri("/tasks")
+                .exchange()
+                .expectStatus()
+                .isOk()
+                .expectBodyList(TaskResponse.class)
+                .hasSize(2)
+                .contains(dummyResponse1, dummyResponse2);
     }
 
     @Test
-    void updateTask() {
+    void updateTask_correctIdAndTaskRequest_noContentStatus() {
+        // given
+        final var dummyId = "dummyId";
+        final var dummyTaskRequest = new TaskRequest("dummyTitle", "dummyDescription", CREATED, null);
+
+        when(taskService.updateTask(dummyId, dummyTaskRequest)).thenReturn(Mono.empty());
+
+        // when & then
+        webTestClient.put()
+                .uri("/tasks/{id}", dummyId)
+                .bodyValue(dummyTaskRequest)
+                .exchange()
+                .expectStatus()
+                .isNoContent()
+                .expectBody()
+                .isEmpty();
+    }
+
+    @Test
+    void updateTask_incorrectId_notFoundStatus() {
+        // given
+        final var incorrectId = "incorrectId";
+        final var dummyTaskRequest = new TaskRequest("dummyTitle", "dummyDescription", CREATED, null);
+
+        when(taskService.updateTask(incorrectId, dummyTaskRequest)).thenReturn(Mono.error(new TaskNotFoundException(incorrectId)));
+
+        // when & then
+        webTestClient.put()
+                .uri("/tasks/{id}", incorrectId)
+                .bodyValue(dummyTaskRequest)
+                .exchange()
+                .expectStatus()
+                .isNotFound()
+                .expectBody(ErrorResponse.class)
+                .consumeWith(result -> {
+                    final var body = result.getResponseBody();
+                    assertEquals(String.format("Task[id=%s] not found.", incorrectId), body.message());
+                });
+    }
+
+    @Test
+    void updateTask_incorrectTitle_badRequestStatus() {
+        // given
+        final var dummyId = "dummyId";
+        final var dummyTaskRequest = new TaskRequest(, "dummyDescription", CREATED, null);
+
+        // when & then
+        webTestClient.put()
+                .uri("/tasks/{id}", dummyId)
+                .bodyValue()
+                .exchange()
+                .expectStatus()
+                .isNotFound()
+                .expectBody(ErrorResponse.class)
+                .consumeWith(result -> {
+
+                });
     }
 
     @Test
     void deleteTaskById_correctId_noContentStatus() {
+        // given
+        final var dummyId = "dummyId";
 
+        when(taskService.deleteTaskById(dummyId)).thenReturn(Mono.empty());
+
+        // when & then
+        webTestClient.delete()
+                .uri("/tasks/{id}", dummyId)
+                .exchange()
+                .expectStatus()
+                .isNoContent()
+                .expectBody()
+                .isEmpty();
     }
 
     @Test
     void getAllUserTasks_correctUserId_listOfSpecificUserTasksAndOkStatus() {
+        // given
+        final var dummyUserId = "dummyUserId";
 
+        final var dummyResponse1 = new TaskResponse("dummyId", "dummyTitle", "dummyDescription", CREATED, LocalDateTime.now(), "dummyUserId");
+        final var dummyResponse2 = new TaskResponse("dummyId2", "dummyTitle2", "dummyDescription2", CREATED, LocalDateTime.now(), "dummyUserId2");
+
+        when(taskService.getAllUserTasks(dummyUserId)).thenReturn(Flux.just(dummyResponse1, dummyResponse2));
+
+        // when & then
+        webTestClient.get()
+                .uri("/tasks/user/{userId}", dummyUserId)
+                .exchange()
+                .expectStatus()
+                .isOk()
+                .expectBodyList(TaskResponse.class)
+                .hasSize(2)
+                .contains(dummyResponse1, dummyResponse2);
     }
 }

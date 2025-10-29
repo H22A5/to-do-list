@@ -32,10 +32,12 @@ class TaskService {
     }
 
     Mono<Void> updateTask(String id, TaskRequest dto) {
-        return repository.findById(id).flatMap(existing -> {
-            existing.updateTaskDetails(dto.title(), dto.description(), dto.status());
-            return repository.save(existing);
-        }).then();
+        return repository.findById(id)
+                .switchIfEmpty(Mono.error(new TaskNotFoundException(id)))
+                .flatMap(existing -> {
+                    existing.updateTaskDetails(dto.title(), dto.description(), dto.status());
+                    return repository.save(existing);
+                }).then();
     }
 
     Mono<Void> deleteTaskById(String id) {
