@@ -14,6 +14,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 import static com.reactive_task_management.to_do_list.task.TaskStatus.CREATED;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -106,8 +107,8 @@ class TaskControllerTest {
                 .isBadRequest()
                 .expectBody(ErrorResponse.class)
                 .consumeWith(result -> {
-                    final var body = result.getResponseBody();
-                    assertEquals("Title cannot be blank.", body.message());
+                    final var message = Optional.ofNullable(result.getResponseBody()).orElse(new ErrorResponse()).message();
+                    assertEquals("Title cannot be blank.", message);
                 });
     }
 

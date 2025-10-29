@@ -4,4 +4,8 @@ public record ErrorResponse(String timestamp,
                             int status,
                             String message,
                             String path) {
+
+    public ErrorResponse() {
+        this(null, 0, null, null);
+    }
 }
