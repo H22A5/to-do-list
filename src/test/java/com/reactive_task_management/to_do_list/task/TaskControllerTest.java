@@ -3,7 +3,7 @@ package com.reactive_task_management.to_do_list.task;
 import com.reactive_task_management.to_do_list.TestConfig;
 import com.reactive_task_management.to_do_list.exception.CustomExceptionHandler;
 import com.reactive_task_management.to_do_list.exception.ErrorResponse;
-import com.reactive_task_management.to_do_list.exception.TaskNotFoundException;
+import com.reactive_task_management.to_do_list.exception.task.TaskNotFoundException;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest;
@@ -18,6 +18,7 @@ import java.util.Optional;
 
 import static com.reactive_task_management.to_do_list.task.TaskStatus.CREATED;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
 /**
@@ -54,21 +55,21 @@ class TaskControllerTest {
     }
 
     @Test
-    void getTaskById_notExistingId_notFoundStatus() {
+    void getTaskById_incorrectId_notFoundStatus() {
         // given
-        final var dummyId = "dummyId";
-        when(taskService.getTaskById(dummyId)).thenReturn(Mono.error(new TaskNotFoundException(dummyId)));
+        final var incorrectId = "incorrectId";
+        when(taskService.getTaskById(incorrectId)).thenReturn(Mono.error(new TaskNotFoundException(incorrectId)));
 
         // when & then
         webTestClient.get()
-                .uri("/tasks/{id}", dummyId)
+                .uri("/tasks/{id}", incorrectId)
                 .exchange()
                 .expectStatus()
                 .isNotFound()
                 .expectBody(ErrorResponse.class)
                 .consumeWith(result -> {
-                    final var body = result.getResponseBody();
-                    assertEquals(String.format("Task[id=%s] not found.", dummyId), body.message());
+                    final var messages = Optional.ofNullable(result.getResponseBody()).orElse(ErrorResponse.empty()).messages();
+                    assertTrue(messages.contains("Task[id=%s] not found.".formatted(incorrectId)) && messages.size() == 1);
                 });
     }
 
@@ -107,8 +108,8 @@ class TaskControllerTest {
                 .isBadRequest()
                 .expectBody(ErrorResponse.class)
                 .consumeWith(result -> {
-                    final var message = Optional.ofNullable(result.getResponseBody()).orElse(new ErrorResponse()).message();
-                    assertEquals("Title cannot be blank.", message);
+                    final var messages = Optional.ofNullable(result.getResponseBody()).orElse(ErrorResponse.empty()).messages();
+                    assertTrue(messages.contains("Title cannot be blank.") && messages.size() == 1);
                 });
     }
 
@@ -126,8 +127,8 @@ class TaskControllerTest {
                 .isBadRequest()
                 .expectBody(ErrorResponse.class)
                 .consumeWith(result -> {
-                    final var body = result.getResponseBody();
-                    assertEquals("User id cannot be blank.", body.message());
+                    final var messages = Optional.ofNullable(result.getResponseBody()).orElse(ErrorResponse.empty()).messages();
+                    assertTrue(messages.contains("User id cannot be blank.") && messages.size() == 1);
                 });
     }
 
@@ -176,7 +177,7 @@ class TaskControllerTest {
     void updateTask_correctIdAndTaskRequest_noContentStatus() {
         // given
         final var dummyId = "dummyId";
-        final var dummyTaskRequest = new TaskRequest("dummyTitle", "dummyDescription", CREATED, null);
+        final var dummyTaskRequest = new TaskRequest("dummyTitle", "dummyDescription", CREATED, "dummyUserId");
 
         when(taskService.updateTask(dummyId, dummyTaskRequest)).thenReturn(Mono.empty());
 
@@ -195,7 +196,7 @@ class TaskControllerTest {
     void updateTask_incorrectId_notFoundStatus() {
         // given
         final var incorrectId = "incorrectId";
-        final var dummyTaskRequest = new TaskRequest("dummyTitle", "dummyDescription", CREATED, null);
+        final var dummyTaskRequest = new TaskRequest("dummyTitle", "dummyDescription", CREATED, "dummyUserId");
 
         when(taskService.updateTask(incorrectId, dummyTaskRequest)).thenReturn(Mono.error(new TaskNotFoundException(incorrectId)));
 
@@ -208,8 +209,8 @@ class TaskControllerTest {
                 .isNotFound()
                 .expectBody(ErrorResponse.class)
                 .consumeWith(result -> {
-                    final var body = result.getResponseBody();
-                    assertEquals(String.format("Task[id=%s] not found.", incorrectId), body.message());
+                    final var messages = Optional.ofNullable(result.getResponseBody()).orElse(ErrorResponse.empty()).messages();
+                    assertTrue(messages.contains("Task[id=%s] not found.".formatted(incorrectId)) && messages.size() == 1);
                 });
     }
 
@@ -217,18 +218,39 @@ class TaskControllerTest {
     void updateTask_incorrectTitle_badRequestStatus() {
         // given
         final var dummyId = "dummyId";
-        final var dummyTaskRequest = new TaskRequest(, "dummyDescription", CREATED, null);
+        final var dummyTaskRequest = new TaskRequest(null, "dummyDescription", CREATED, "dummyUserId");
 
         // when & then
         webTestClient.put()
                 .uri("/tasks/{id}", dummyId)
-                .bodyValue()
+                .bodyValue(dummyTaskRequest)
                 .exchange()
                 .expectStatus()
-                .isNotFound()
+                .isBadRequest()
                 .expectBody(ErrorResponse.class)
                 .consumeWith(result -> {
+                    final var messages = Optional.ofNullable(result.getResponseBody()).orElse(ErrorResponse.empty()).messages();
+                    assertTrue(messages.contains("Title cannot be blank.") && messages.size() == 1);
+                });
+    }
 
+    @Test
+    void updateTask_incorrectUserId_badRequestStatus() {
+        // given
+        final var dummyId = "dummyId";
+        final var dummyTaskRequest = new TaskRequest("dummyTitle", "dummyDescription", CREATED, null);
+
+        // when & then
+        webTestClient.put()
+                .uri("/tasks/{id}", dummyId)
+                .bodyValue(dummyTaskRequest)
+                .exchange()
+                .expectStatus()
+                .isBadRequest()
+                .expectBody(ErrorResponse.class)
+                .consumeWith(result -> {
+                    final var messages = Optional.ofNullable(result.getResponseBody()).orElse(ErrorResponse.empty()).messages();
+                    assertTrue(messages.contains("User id cannot be blank.") && messages.size() == 1);
                 });
     }
 

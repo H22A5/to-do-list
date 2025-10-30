@@ -11,7 +11,7 @@ class UserFacadeImpl implements UserFacade {
     private final UserService userService;
 
     @Override
-    public Mono<Void> validateUserExists(String id) {
-        return userService.validateUserExists(id);
+    public Mono<UserView> getUserById(String id) {
+        return userService.getUserViewById(id);
     }
 }

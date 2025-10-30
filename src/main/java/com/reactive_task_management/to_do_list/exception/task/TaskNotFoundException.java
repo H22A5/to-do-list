@@ -1,4 +1,4 @@
-package com.reactive_task_management.to_do_list.exception;
+package com.reactive_task_management.to_do_list.exception.task;
 
 public class TaskNotFoundException extends RuntimeException {
 

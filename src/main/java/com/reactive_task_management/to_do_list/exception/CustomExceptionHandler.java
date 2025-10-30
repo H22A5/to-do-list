@@ -1,5 +1,9 @@
 package com.reactive_task_management.to_do_list.exception;
 
+import com.reactive_task_management.to_do_list.exception.task.TaskNotFoundException;
+import com.reactive_task_management.to_do_list.exception.user.UserAlreadyExists;
+import com.reactive_task_management.to_do_list.exception.user.UserNotFoundException;
+import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -7,6 +11,7 @@ import org.springframework.web.bind.support.WebExchangeBindException;
 import org.springframework.web.server.ServerWebExchange;
 
 import java.time.Instant;
+import java.util.List;
 
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
@@ -20,7 +25,7 @@ public class CustomExceptionHandler {
         return new ErrorResponse(
                 Instant.now().toString(),
                 NOT_FOUND.value(),
-                ex.getMessage(),
+                List.of(ex.getMessage()),
                 exchange.getRequest().getPath().value()
         );
     }
@@ -31,7 +36,18 @@ public class CustomExceptionHandler {
         return new ErrorResponse(
                 Instant.now().toString(),
                 BAD_REQUEST.value(),
-                ex.getBindingResult().getFieldErrors().get(0).getDefaultMessage(),
+                ex.getBindingResult().getFieldErrors().stream().map(DefaultMessageSourceResolvable::getDefaultMessage).toList(),
+                exchange.getRequest().getPath().value()
+        );
+    }
+
+    @ExceptionHandler(UserAlreadyExists.class)
+    @ResponseStatus(BAD_REQUEST)
+    public ErrorResponse handleUserAlreadyExistsException(UserAlreadyExists ex, ServerWebExchange exchange) {
+        return new ErrorResponse(
+                Instant.now().toString(),
+                BAD_REQUEST.value(),
+                List.of(ex.getMessage()),
                 exchange.getRequest().getPath().value()
         );
     }

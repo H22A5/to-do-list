@@ -1,7 +1,10 @@
 package com.reactive_task_management.to_do_list.task;
 
 
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -9,7 +12,6 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import java.time.LocalDateTime;
 import java.util.Objects;
 
-import static java.time.LocalDateTime.now;
 import static lombok.AccessLevel.PRIVATE;
 
 @Document("tasks")
@@ -33,10 +35,11 @@ class Task {
 
     private String userId;
 
-    void updateTaskDetails(String title, String description, TaskStatus status) {
+    void updateTaskDetails(String title, String description, TaskStatus status, String userId) {
         this.title = title;
         this.description = description;
         this.status = status;
+        this.userId = userId;
     }
 
     @Override

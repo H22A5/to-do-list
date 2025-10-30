@@ -1,6 +1,6 @@
 package com.reactive_task_management.to_do_list.task;
 
-import com.reactive_task_management.to_do_list.exception.TaskNotFoundException;
+import com.reactive_task_management.to_do_list.exception.task.TaskNotFoundException;
 import com.reactive_task_management.to_do_list.user.UserFacade;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate;
@@ -19,25 +19,20 @@ class TaskService {
 
     Mono<TaskResponse> saveTask(TaskRequest request) {
 
-        String userId = request.userId();
-        userFacade.validateUserExists(userId).then();
-
-        final var taskToBeSaved = Task.builder()
-                .title(request.title())
-                .description(request.description())
-                .status(request.status())
-                .build();
-
-        return repository.save(taskToBeSaved).map(TaskResponse::fromTask);
+        final String userId = request.userId();
+        // chaining
+        return userFacade.getUserById(userId)
+                .flatMap(_ -> createTask(request))
+                .flatMap(this::saveTask)
+                .map(TaskResponse::fromTask);
     }
 
-    Mono<Void> updateTask(String id, TaskRequest dto) {
+    Mono<Void> updateTask(String id, TaskRequest request) {
+        // chaining
         return repository.findById(id)
                 .switchIfEmpty(Mono.error(new TaskNotFoundException(id)))
-                .flatMap(existing -> {
-                    existing.updateTaskDetails(dto.title(), dto.description(), dto.status());
-                    return repository.save(existing);
-                }).then();
+                .flatMap(existing -> userFacade.getUserById(request.userId()).flatMap(_ -> updateTask(existing, request)))
+                .then();
     }
 
     Mono<Void> deleteTaskById(String id) {
@@ -61,5 +56,23 @@ class TaskService {
 
     Flux<TaskResponse> getAllUserTasks(String userId) {
         return repository.findAllByUserId(userId).map(TaskResponse::fromTask);
+    }
+
+    private Mono<Task> createTask(TaskRequest request) {
+        return Mono.just(Task.builder()
+                .title(request.title())
+                .description(request.description())
+                .status(request.status())
+                .userId(request.userId())
+                .build());
+    }
+
+    private Mono<Task> saveTask(Task task) {
+        return repository.save(task);
+    }
+
+    private Mono<Task> updateTask(Task task, TaskRequest request) {
+        task.updateTaskDetails(request.title(), request.description(), request.status(), request.userId());
+        return Mono.just(task);
     }
 }
